@@ -16,17 +16,24 @@ impl Connection {
             // could use Result.unwrap_err(), but that would require a show instance for TcpStream
             return Err(frame::TcpError(stream_err.err().unwrap()));
         }
-        let mut stream = stream_err.unwrap();
+        let mut conn = Connection {stream: stream_err.unwrap()};
         let mut connect_frame = frame::Frame::new(frame::Connect, "");
-        let s = connect_frame.to_string();
-        let sb = s.as_bytes();
-        stream.write(sb);
+        conn.send_frame(connect_frame);
+
+        // Check that the server sends back a CONNECTED frame
         let mut buf = [0, ..1024];
-        stream.read(buf);
+        conn.stream.read(buf);
         let response_frame = try!(frame::Frame::parse(buf));
         if response_frame.command != frame::Connected {
-            return Err(frame::IncorrectResponse(format!("Expected a CONNECTED frame but didn't get one. Instead got {}", response_frame.command.to_str())));
+            return Err(frame::IncorrectResponse(format!(
+                "Expected a CONNECTED frame but didn't get one. Instead got {}", response_frame.command.to_str())));
         }
-        Ok(Connection {stream: stream})
+        Ok(conn)
+    }
+
+    fn send_frame(&mut self, frame: frame::Frame) {
+        let s = frame.to_string();
+        let sb = s.as_bytes();
+        self.stream.write(sb);
     }
 }
