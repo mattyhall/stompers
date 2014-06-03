@@ -7,6 +7,9 @@ use collections::HashMap;
 pub enum StompError {
     TcpError(io::IoError),
     MalformedFrame(String),
+    MalformedCommand(String),
+    MalformedHeader(String),
+    IncorrectResponse(String),
     Other(String),
 }
 
@@ -33,7 +36,7 @@ impl Command {
         match s {
             "CONNECTED" => Ok(Connected),
             "ERROR" => Ok(Error),
-            _       => Err(MalformedFrame(format!("Unknown command: {}", s)))
+            _       => Err(MalformedCommand(format!("Unknown command: {}", s)))
         }
     }
 }
