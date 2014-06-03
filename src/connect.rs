@@ -23,7 +23,6 @@ impl Connection {
         stream.write(sb);
         let mut buf = [0, ..1024];
         stream.read(buf);
-        println!("{}", str::from_utf8(buf));
         let response_frame = try!(frame::Frame::parse(buf));
         if response_frame.command != frame::Connected {
             return Err(frame::IncorrectResponse(format!("Expected a CONNECTED frame but didn't get one. Instead got {}", response_frame.command.to_str())));

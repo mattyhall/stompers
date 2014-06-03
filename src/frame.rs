@@ -77,14 +77,23 @@ impl Frame {
         let mut frame = Frame::new(cmd, "");
         
         for &line in lines.iter().skip(1) {
+            if line == "" {
+                break;
+            }
             let (k, v) = try!(parse_header(line));
             frame.add_header(k, v);
         }
+        let &body = lines.iter().last().unwrap();
+        frame.body = String::from_str(body);
 
         return Ok(frame);
     }
 }
 
 fn parse_header(line: &str) -> Result<(&str, &str), StompError> {
+    let mut parts = line.split_str(":");
+    if parts.len() != 2 {
+        return Err(MalformedHeader(format!("Header does not have a key and a value. {}", line)));
+    }
     Ok(("",""))
 }
