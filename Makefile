@@ -314,9 +314,9 @@ git-ignore:
 
 examples: $(EXAMPLE_FILES)
 
-$(EXAMPLE_FILES): lib examples-dir
+$(EXAMPLE_FILES): dylib examples-dir
 	$(Q)$(COMPILER) --target "$(TARGET)" $(COMPILER_FLAGS) $@ -L "target/$(TARGET)/lib" --out-dir examples/ \
-	&& echo "--- Built examples"
+	&& echo "--- Built examples" && ./examples/basic
 
 src/main.rs: | src/
 	$(Q)test -e src/main.rs \
