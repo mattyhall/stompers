@@ -1,6 +1,5 @@
-#![crate_id = ""]
-use std::io;
 use std::str;
+use std::io;
 use collections::HashMap;
 
 #[deriving(Show, Eq)]
@@ -68,7 +67,7 @@ impl Frame {
 
     pub fn parse(bytes: &[u8]) -> Result<Frame, StompError> {
         let s = str::from_utf8(bytes).unwrap();
-        let mut lines: Vec<&str> = s.lines().collect();
+        let lines: Vec<&str> = s.lines().collect();
         if lines.len() <= 1 {
             return Err(MalformedFrame(String::from_str("Frame too short. Must have at least 2 lines")));
         }

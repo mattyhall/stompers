@@ -1,8 +1,5 @@
 extern crate collections;
 
-use std::io::net::tcp::TcpStream;
-use std::str;
-
 pub mod frame;
 pub mod connect;
 

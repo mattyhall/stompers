@@ -1,6 +1,4 @@
-use std::io;
 use std::io::net::tcp::TcpStream;
-use std::str;
 
 use frame;
 
