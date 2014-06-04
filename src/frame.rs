@@ -5,6 +5,7 @@ use collections::HashMap;
 #[deriving(Show, Eq)]
 pub enum StompError {
     TcpError(io::IoError),
+    ConnectionRefused(String),
     MalformedFrame(String),
     MalformedCommand(String),
     MalformedHeader(String),
@@ -24,18 +25,18 @@ impl Command {
     pub fn to_str(&self) -> &str {
         let s = *self;
         match s {
-            Connect => "CONNECT",
+            Connect   => "CONNECT",
             Connected => "CONNECTED",
-            Send => "SEND",
-            Error => "ERROR",
+            Send      => "SEND",
+            Error     => "ERROR",
         }
     }
 
     fn parse(s: &str) -> Result<Command, StompError> {
         match s {
             "CONNECTED" => Ok(Connected),
-            "ERROR" => Ok(Error),
-            _       => Err(MalformedCommand(format!("Unknown command: {}", s)))
+            "ERROR"     => Ok(Error),
+            _           => Err(MalformedCommand(format!("Unknown command: {}", s)))
         }
     }
 }

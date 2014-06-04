@@ -22,11 +22,13 @@ impl Connection {
         let mut buf = [0, ..1024];
         conn.stream.read(buf);
         let response_frame = try!(frame::Frame::parse(buf));
-        if response_frame.command != frame::Connected {
-            return Err(frame::IncorrectResponse(format!(
-                "Expected a CONNECTED frame but didn't get one. Instead got {}", response_frame.command.to_str())));
+        return match response_frame.command {
+            frame::Connected => Ok(conn),
+            frame::Error     => Err(frame::ConnectionRefused(format!("Server refused connection. Error was: {}", response_frame.body))),
+            _                => Err(frame::IncorrectResponse(format!(
+                                    "Expected server to send a CONNECTED frame but didn't get one. Instead got a {} frame", 
+                                    response_frame.command.to_str())))
         }
-        Ok(conn)
     }
 
     fn send_frame(&mut self, frame: frame::Frame) {
