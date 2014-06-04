@@ -90,10 +90,10 @@ impl Frame {
     }
 }
 
-fn parse_header(line: &str) -> Result<(&str, &str), StompError> {
-    let mut parts = line.split_str(":");
+fn parse_header<'a>(line: &'a str) -> Result<(&'a str, &'a str), StompError> {
+    let parts: Vec<&str> = line.split_str(":").collect();
     if parts.len() != 2 {
         return Err(MalformedHeader(format!("Header does not have a key and a value. {}", line)));
     }
-    Ok(("",""))
+    Ok((*parts.get(0), *parts.get(1)))
 }
