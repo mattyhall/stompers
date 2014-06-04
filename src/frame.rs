@@ -41,6 +41,7 @@ impl Command {
     }
 }
 
+#[deriving(Show, Eq)]
 pub struct Frame {
     pub command: Command,
     pub headers: HashMap<String,String>,

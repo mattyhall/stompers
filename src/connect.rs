@@ -1,6 +1,7 @@
 use std::io::net::tcp::TcpStream;
 
 use frame;
+use message;
 
 pub struct Connection {
     stream: TcpStream
@@ -35,5 +36,9 @@ impl Connection {
         let s = frame.to_string();
         let sb = s.as_bytes();
         self.stream.write(sb);
+    }
+
+    pub fn send_message(&mut self, msg: message::Message) {
+        self.send_frame(msg.frame);
     }
 }
