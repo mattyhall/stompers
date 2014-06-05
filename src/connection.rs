@@ -1,5 +1,6 @@
 use std::io::net::tcp::TcpStream;
 
+use misc::*;
 use frame;
 use message;
 
@@ -8,15 +9,15 @@ pub struct Connection {
 }
 
 impl Connection {
-    pub fn new(ip: &str, port: u16) -> Result<Connection, frame::StompError> {
+    pub fn new(ip: &str, port: u16) -> Result<Connection, StompError> {
         let stream_err = TcpStream::connect(ip, port);
         if !stream_err.is_ok() {
             // use Result.err() to turn it into an Option.
             // could use Result.unwrap_err(), but that would require a show instance for TcpStream
-            return Err(frame::TcpError(stream_err.err().unwrap()));
+            return Err(TcpError(stream_err.err().unwrap()));
         }
         let mut conn = Connection {stream: stream_err.unwrap()};
-        let mut connect_frame = frame::Frame::new(frame::Connect, "");
+        let connect_frame = frame::Frame::new(frame::Connect, "");
         conn.send_frame(&connect_frame);
 
         // Check that the server sends back a CONNECTED frame
@@ -25,8 +26,8 @@ impl Connection {
         let response_frame = try!(frame::Frame::parse(buf));
         match response_frame.command {
             frame::Connected => Ok(conn),
-            frame::Error     => Err(frame::ConnectionRefused(format!("Server refused connection. Error was: {}", response_frame.body))),
-            _                => Err(frame::IncorrectResponse(format!(
+            frame::Error     => Err(ConnectionRefused(format!("Server refused connection. Error was: {}", response_frame.body))),
+            _                => Err(IncorrectResponse(format!(
                                     "Expected server to send a CONNECTED frame but didn't get one. Instead got a {} frame", 
                                     response_frame.command.to_str())))
         }
@@ -38,7 +39,7 @@ impl Connection {
         self.stream.write(sb);
     }
 
-    pub fn send_message(&mut self, msg: message::Message) -> Result<(), frame::StompError> {
+    pub fn send_message(&mut self, msg: message::Message) -> Result<(), StompError> {
         let mut cpy = msg;
         cpy.add_header("receipt", "send-message");
         self.send_frame(cpy.get_frame());
@@ -49,8 +50,8 @@ impl Connection {
         let response_frame = try!(frame::Frame::parse(buf));
         match response_frame.command {
             frame::Receipt => Ok(()),
-            frame::Error   => Err(frame::MessageNotSent(format!("Could not send message. Error was: {}", response_frame.body))),
-            _              => Err(frame::IncorrectResponse(format!(
+            frame::Error   => Err(MessageNotSent(format!("Could not send message. Error was: {}", response_frame.body))),
+            _              => Err(IncorrectResponse(format!(
                                 "Expected server to send a RECEIPT frame but didn't get one. Instead got a {} frame",
                                 response_frame.command.to_str())))
         }

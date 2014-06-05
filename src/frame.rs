@@ -1,18 +1,7 @@
 use std::str;
-use std::io;
 use collections::HashMap;
+use misc::*;
 
-#[deriving(Show, Eq)]
-pub enum StompError {
-    TcpError(io::IoError),
-    MalformedFrame(String),
-    MalformedCommand(String),
-    MalformedHeader(String),
-    ConnectionRefused(String),
-    IncorrectResponse(String),
-    MessageNotSent(String),
-    Other(String),
-}
 
 #[deriving(Show, Eq)]
 pub enum Command {
