@@ -4,5 +4,5 @@
 extern crate collections;
 
 mod frame;
-pub mod connect;
+pub mod connection;
 pub mod message;
