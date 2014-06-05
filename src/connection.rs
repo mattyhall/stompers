@@ -35,6 +35,10 @@ impl Connection {
 
     fn send_frame(&mut self, frame: &frame::Frame) {
         let s = frame.to_string();
+        self.send_string(s);
+    }
+
+    fn send_string(&mut self, s: String) {
         let sb = s.as_bytes();
         self.stream.write(sb);
     }
@@ -42,7 +46,7 @@ impl Connection {
     pub fn send_message(&mut self, msg: message::Message) -> Result<(), StompError> {
         let mut cpy = msg;
         cpy.add_header("receipt", "send-message");
-        self.send_frame(cpy.get_frame());
+        self.send_string(cpy.to_string());
 
         // Check the server sends back a RECEIPT frame
         let mut buf = [0, ..1024];

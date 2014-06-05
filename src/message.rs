@@ -16,7 +16,7 @@ impl Message {
         self.frame.add_header(k, v);
     }
 
-    pub fn get_frame<'a>(&'a self) -> &'a frame::Frame {
-        &self.frame
+    pub fn to_string(&self) -> String {
+        self.frame.to_string()
     }
 }
