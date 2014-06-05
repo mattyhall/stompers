@@ -5,20 +5,24 @@ use collections::HashMap;
 #[deriving(Show, Eq)]
 pub enum StompError {
     TcpError(io::IoError),
-    ConnectionRefused(String),
     MalformedFrame(String),
     MalformedCommand(String),
     MalformedHeader(String),
+    ConnectionRefused(String),
     IncorrectResponse(String),
+    MessageNotSent(String),
     Other(String),
 }
 
 #[deriving(Show, Eq)]
 pub enum Command {
+    // Client commands
     Connect,
     Send,
-    Error,
+    // Server commands
     Connected,
+    Receipt,
+    Error,
 }
 
 impl Command {
@@ -26,8 +30,9 @@ impl Command {
         let s = *self;
         match s {
             Connect   => "CONNECT",
-            Connected => "CONNECTED",
             Send      => "SEND",
+            Receipt   => "RECEIPT",
+            Connected => "CONNECTED",
             Error     => "ERROR",
         }
     }
@@ -35,6 +40,7 @@ impl Command {
     fn parse(s: &str) -> Result<Command, StompError> {
         match s {
             "CONNECTED" => Ok(Connected),
+            "RECEIPT"   => Ok(Receipt),
             "ERROR"     => Ok(Error),
             _           => Err(MalformedCommand(format!("Unknown command: {}", s)))
         }
@@ -71,7 +77,7 @@ impl Frame {
         let s = str::from_utf8(bytes).unwrap();
         let lines: Vec<&str> = s.lines().collect();
         if lines.len() <= 1 {
-            return Err(MalformedFrame(String::from_str("Frame too short. Must have at least 2 lines")));
+            return Err(MalformedFrame(format!("Frame too short. Must have at least 2 lines. Frame was: {}", s)));
         }
         let cmd_str = *lines.get(0);
         let cmd = try!(Command::parse(cmd_str));

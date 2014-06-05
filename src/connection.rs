@@ -1,10 +1,11 @@
+use std::str;
 use std::io::net::tcp::TcpStream;
 
 use frame;
 use message;
 
 pub struct Connection {
-    stream: TcpStream
+    stream: TcpStream,
 }
 
 impl Connection {
@@ -23,7 +24,7 @@ impl Connection {
         let mut buf = [0, ..1024];
         conn.stream.read(buf);
         let response_frame = try!(frame::Frame::parse(buf));
-        return match response_frame.command {
+        match response_frame.command {
             frame::Connected => Ok(conn),
             frame::Error     => Err(frame::ConnectionRefused(format!("Server refused connection. Error was: {}", response_frame.body))),
             _                => Err(frame::IncorrectResponse(format!(
@@ -38,7 +39,21 @@ impl Connection {
         self.stream.write(sb);
     }
 
-    pub fn send_message(&mut self, msg: message::Message) {
-        self.send_frame(msg.frame);
+    pub fn send_message(&mut self, msg: message::Message) -> Result<(), frame::StompError> {
+        let mut cpy = msg;
+        cpy.add_header("receipt", "send-message");
+        self.send_frame(cpy.frame);
+
+        // Check the server sends back a RECEIPT frame
+        let mut buf = [0, ..1024];
+        self.stream.read(buf);
+        let response_frame = try!(frame::Frame::parse(buf));
+        match response_frame.command {
+            frame::Receipt => Ok(()),
+            frame::Error   => Err(frame::MessageNotSent(format!("Could not send message. Error was: {}", response_frame.body))),
+            _              => Err(frame::IncorrectResponse(format!(
+                                "Expected server to send a RECEIPT frame but didn't get one. Instead got a {} frame",
+                                response_frame.command.to_str())))
+        }
     }
 }
