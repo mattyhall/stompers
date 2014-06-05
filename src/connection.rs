@@ -1,4 +1,3 @@
-use std::str;
 use std::io::net::tcp::TcpStream;
 
 use frame;
@@ -18,7 +17,7 @@ impl Connection {
         }
         let mut conn = Connection {stream: stream_err.unwrap()};
         let mut connect_frame = frame::Frame::new(frame::Connect, "");
-        conn.send_frame(connect_frame);
+        conn.send_frame(&connect_frame);
 
         // Check that the server sends back a CONNECTED frame
         let mut buf = [0, ..1024];
@@ -33,7 +32,7 @@ impl Connection {
         }
     }
 
-    fn send_frame(&mut self, frame: frame::Frame) {
+    fn send_frame(&mut self, frame: &frame::Frame) {
         let s = frame.to_string();
         let sb = s.as_bytes();
         self.stream.write(sb);
@@ -42,7 +41,7 @@ impl Connection {
     pub fn send_message(&mut self, msg: message::Message) -> Result<(), frame::StompError> {
         let mut cpy = msg;
         cpy.add_header("receipt", "send-message");
-        self.send_frame(cpy.frame);
+        self.send_frame(cpy.get_frame());
 
         // Check the server sends back a RECEIPT frame
         let mut buf = [0, ..1024];

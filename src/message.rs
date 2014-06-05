@@ -2,7 +2,7 @@ use frame;
 
 #[deriving(Show, Eq)]
 pub struct Message {
-    pub frame: frame::Frame,
+    frame: frame::Frame,
 }
 
 impl Message {
@@ -14,5 +14,9 @@ impl Message {
 
     pub fn add_header(&mut self, k: &str, v: &str) {
         self.frame.add_header(k, v);
+    }
+
+    pub fn get_frame<'a>(&'a self) -> &'a frame::Frame {
+        &self.frame
     }
 }
