@@ -43,21 +43,30 @@ impl Connection {
         self.stream.write(sb);
     }
 
-    pub fn send_message(&mut self, msg: message::Message) -> Result<(), StompError> {
-        let mut cpy = msg;
-        cpy.add_header("receipt", "send-message");
-        self.send_string(cpy.to_string());
 
-        // Check the server sends back a RECEIPT frame
+    pub fn send_message(&mut self, msg:message::Message) {
+        self.send_string(msg.to_string());
+    }
+
+    pub fn send_message_and_wait(&mut self, msg: message::Message, timeout_ms: u64) -> Result<(), StompError> {
+        self.send_message(msg);
+
+        // Check the server did not send back an ERROR frame
         let mut buf = [0, ..1024];
-        self.stream.read(buf);
-        let response_frame = try!(frame::Frame::parse(buf));
-        match response_frame.command {
-            frame::Receipt => Ok(()),
-            frame::Error   => Err(MessageNotSent(format!("Could not send message. Error was: {}", response_frame.body))),
-            _              => Err(IncorrectResponse(format!(
-                                "Expected server to send a RECEIPT frame but didn't get one. Instead got a {} frame",
-                                response_frame.command.to_str())))
+        self.stream.set_read_timeout(Some(timeout_ms));
+        let len = self.stream.read(buf);
+        self.stream.set_read_timeout(None);
+        match len {
+            Ok(_) => {
+                let response_frame = try!(frame::Frame::parse(buf));
+                match response_frame.command {
+                    frame::Error   => Err(MessageNotSent(format!("Could not send message. Error was: {}", response_frame.body))),
+                    _              => Err(IncorrectResponse(format!(
+                                        "Expected server to send no frame or an ERROR frame but instead got a {} frame",
+                                        response_frame.command.to_str())))
+                }
+            },
+            Err(_) => Ok(())
         }
     }
 }
