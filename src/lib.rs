@@ -1,4 +1,4 @@
-#![crate_id = "stomp#0.1"]
+#![crate_id = "stompers#0.1"]
 #![crate_type = "lib"]
 #![feature(globs)]
 
