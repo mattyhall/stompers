@@ -1,5 +1,6 @@
 use std::io::net::tcp::TcpStream;
 
+use std::io::{IoResult};
 use collections::HashMap;
 use misc::*;
 use frame;
@@ -24,8 +25,7 @@ impl Connection {
         conn.send_frame(&connect_frame);
 
         // Check that the server sends back a CONNECTED frame
-        let mut buf = [0, ..1024];
-        conn.stream.read(buf);
+        let (_, buf) = conn.read();
         let response_frame = try!(frame::Frame::parse(buf));
         match response_frame.command {
             frame::Connected => Ok(conn),
@@ -34,6 +34,12 @@ impl Connection {
                                     "Expected server to send a CONNECTED frame but didn't get one. Instead got a {} frame", 
                                     response_frame.command.to_str())))
         }
+    }
+
+    fn read(&mut self) -> (IoResult<uint>, [u8, ..1024]) {
+        let mut buf = [0, ..1024];
+        let res = self.stream.read(buf);
+        (res, buf)
     }
 
     fn send_frame(&mut self, frame: &frame::Frame) {
@@ -54,9 +60,8 @@ impl Connection {
         self.send_message(msg);
 
         // Check the server did not send back an ERROR frame
-        let mut buf = [0, ..1024];
         self.stream.set_read_timeout(Some(timeout_ms));
-        let len = self.stream.read(buf);
+        let (len, buf) = self.read();
         self.stream.set_read_timeout(None);
         match len {
             Ok(_) => {
