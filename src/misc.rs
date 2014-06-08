@@ -8,6 +8,5 @@ pub enum StompError {
     MalformedHeader(String),
     ConnectionRefused(String),
     IncorrectResponse(String),
-    MessageNotSent(String),
     Other(String),
 }

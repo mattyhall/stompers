@@ -56,27 +56,6 @@ impl Connection {
         self.send_string(msg.to_string());
     }
 
-    pub fn send_message_and_wait(&mut self, msg: message::Message, timeout_ms: u64) -> Result<(), StompError> {
-        self.send_message(msg);
-
-        // Check the server did not send back an ERROR frame
-        self.stream.set_read_timeout(Some(timeout_ms));
-        let (len, buf) = self.read();
-        self.stream.set_read_timeout(None);
-        match len {
-            Ok(_) => {
-                let response_frame = try!(frame::Frame::parse(buf));
-                match response_frame.command {
-                    frame::Error   => Err(MessageNotSent(format!("Could not send message. Error was: {}", response_frame.body))),
-                    _              => Err(IncorrectResponse(format!(
-                                        "Expected server to send no frame or an ERROR frame but instead got a {} frame",
-                                        response_frame.command.to_str())))
-                }
-            },
-            Err(_) => Ok(())
-        }
-    }
-
     pub fn subscribe(&mut self, queue: &str) {
         if !self.subscriptions.contains_key_equiv(&String::from_str(queue)) {
             let mut subscribe_frame = frame::Frame::new(frame::Subscribe, "");
