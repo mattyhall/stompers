@@ -8,6 +8,7 @@ pub enum Command {
     // Client commands
     Connect,
     Send,
+    Subscribe,
     // Server commands
     Connected,
     Receipt,
@@ -20,6 +21,7 @@ impl Command {
         match s {
             Connect   => "CONNECT",
             Send      => "SEND",
+            Subscribe => "SUBSCRIBE",
             Receipt   => "RECEIPT",
             Connected => "CONNECTED",
             Error     => "ERROR",

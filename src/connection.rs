@@ -1,11 +1,14 @@
 use std::io::net::tcp::TcpStream;
 
+use collections::HashMap;
 use misc::*;
 use frame;
 use message;
 
 pub struct Connection {
     stream: TcpStream,
+    subscriptions: HashMap<String, int>,
+    subscription_num: int,
 }
 
 impl Connection {
@@ -16,7 +19,7 @@ impl Connection {
             // could use Result.unwrap_err(), but that would require a show instance for TcpStream
             return Err(TcpError(stream_err.err().unwrap()));
         }
-        let mut conn = Connection {stream: stream_err.unwrap()};
+        let mut conn = Connection {stream: stream_err.unwrap(), subscriptions: HashMap::new(), subscription_num: 0};
         let connect_frame = frame::Frame::new(frame::Connect, "");
         conn.send_frame(&connect_frame);
 
@@ -43,7 +46,6 @@ impl Connection {
         self.stream.write(sb);
     }
 
-
     pub fn send_message(&mut self, msg:message::Message) {
         self.send_string(msg.to_string());
     }
@@ -67,6 +69,18 @@ impl Connection {
                 }
             },
             Err(_) => Ok(())
+        }
+    }
+
+    pub fn subscribe(&mut self, queue: &str) {
+        if !self.subscriptions.contains_key_equiv(&String::from_str(queue)) {
+            let mut subscribe_frame = frame::Frame::new(frame::Subscribe, "");
+            subscribe_frame.add_header("id", self.subscription_num.to_str().as_slice());
+            subscribe_frame.add_header("destination", queue);
+            self.send_frame(&subscribe_frame);
+
+            self.subscriptions.insert(String::from_str(queue), self.subscription_num);
+            self.subscription_num += 1;
         }
     }
 }
