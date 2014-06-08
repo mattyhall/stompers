@@ -12,6 +12,7 @@ pub enum Command {
     // Server commands
     Connected,
     Receipt,
+    Message,
     Error,
 }
 
@@ -23,6 +24,7 @@ impl Command {
             Send      => "SEND",
             Subscribe => "SUBSCRIBE",
             Receipt   => "RECEIPT",
+            Message   => "MESSAGE",
             Connected => "CONNECTED",
             Error     => "ERROR",
         }
@@ -32,6 +34,7 @@ impl Command {
         match s {
             "CONNECTED" => Ok(Connected),
             "RECEIPT"   => Ok(Receipt),
+            "MESSAGE"   => Ok(Message),
             "ERROR"     => Ok(Error),
             _           => Err(MalformedCommand(format!("Unknown command: {}", s)))
         }

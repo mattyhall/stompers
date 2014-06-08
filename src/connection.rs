@@ -1,6 +1,6 @@
 use std::io::net::tcp::TcpStream;
 
-use std::io::{IoResult};
+use std::io::IoResult;
 use collections::HashMap;
 use misc::*;
 use frame;
@@ -65,6 +65,17 @@ impl Connection {
 
             self.subscriptions.insert(String::from_str(queue), self.subscription_num);
             self.subscription_num += 1;
+        }
+    }
+
+    pub fn receive(&mut self) -> Result<message::Message, StompError> {
+        let (_, buf) = self.read();
+        let frame = try!(frame::Frame::parse(buf));
+        match frame.command {
+            frame::Message => Ok(message::Message::from_frame(frame)),
+            frame::Error   => Err(Other(format!("There was an error: {}", frame.body))),
+            _              => Err(IncorrectResponse(format!("Expected a MESSAGE frame but didn't get one. Instead got a {} frame",
+                                   frame.command.to_str()))),
         }
     }
 }

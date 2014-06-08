@@ -12,6 +12,10 @@ impl Message {
         Message {frame: frame}
     }
 
+    pub fn from_frame(frame: frame::Frame) -> Message {
+        Message {frame: frame}
+    }
+
     pub fn add_header(&mut self, k: &str, v: &str) {
         self.frame.add_header(k, v);
     }

@@ -6,4 +6,5 @@ fn main() {
     let msg = stompers::Message::new("a-queue", "hello world");
     conn.send_message(msg);
     println!("Message sent");
+    println!("Received: {}", conn.receive());
 }
