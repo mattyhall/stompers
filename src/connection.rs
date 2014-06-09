@@ -1,6 +1,5 @@
-use std::io::net::tcp::TcpStream;
-
 use std::io::IoResult;
+use std::io::net::tcp::TcpStream;
 use collections::HashMap;
 use misc::*;
 use frame;
@@ -10,6 +9,7 @@ pub struct Connection {
     stream: TcpStream,
     subscriptions: HashMap<String, int>,
     subscription_num: int,
+    kill_reader: Sender<bool>,
 }
 
 impl Connection {
@@ -20,7 +20,9 @@ impl Connection {
             // could use Result.unwrap_err(), but that would require a show instance for TcpStream
             return Err(TcpError(stream_err.err().unwrap()));
         }
-        let mut conn = Connection {stream: stream_err.unwrap(), subscriptions: HashMap::new(), subscription_num: 0};
+        let (tx, _) = channel();
+        let mut conn = Connection {stream: stream_err.unwrap(), subscriptions: HashMap::new(), subscription_num: 0,
+            kill_reader: tx};
         let connect_frame = frame::Frame::new(frame::Connect, "");
         conn.send_frame(&connect_frame);
 
@@ -28,7 +30,10 @@ impl Connection {
         let (_, buf) = conn.read();
         let response_frame = try!(frame::Frame::parse(buf));
         match response_frame.command {
-            frame::Connected => Ok(conn),
+            frame::Connected => {
+                conn.spawn_reader();
+                Ok(conn)
+            },
             frame::Error     => Err(ConnectionRefused(format!("Server refused connection. Error was: {}", response_frame.body))),
             _                => Err(IncorrectResponse(format!(
                                     "Expected server to send a CONNECTED frame but didn't get one. Instead got a {} frame", 
@@ -40,6 +45,31 @@ impl Connection {
         let mut buf = [0, ..1024];
         let res = self.stream.read(buf);
         (res, buf)
+    }
+
+    fn spawn_reader(&mut self) {
+        let mut stream = self.stream.clone();
+        let (tx, rx): (Sender<bool>, Receiver<bool>) = channel();
+        self.kill_reader = tx;
+        spawn(proc() {
+            // as per https://github.com/mozilla/rust/issues/10617
+            // I would have thought it would be fixed by now
+            let mut stream = stream;
+            // set timeout so that we can check if someone wants to kill this task
+            stream.set_read_timeout(Some(50));
+            let mut buf = [0, ..1024];
+            loop {
+                match stream.read(buf) {
+                    Ok(_)  => println!("From task: {}", frame::Frame::parse(buf)),
+                    Err(_) => {}
+                }
+
+                match rx.try_recv() {
+                    Ok(_)  => break,
+                    Err(_) => {}
+                }
+            }
+        });
     }
 
     fn send_frame(&mut self, frame: &frame::Frame) {
@@ -79,3 +109,11 @@ impl Connection {
         }
     }
 }
+
+impl Drop for Connection {
+    fn drop(&mut self) {
+        // we want to kill the task that is reading off the stream
+        self.kill_reader.send(true);
+    }
+}
+
