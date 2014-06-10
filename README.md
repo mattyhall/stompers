@@ -6,6 +6,11 @@ So far it has only been tested with RabbitMQ, but it should work with other serv
 
 For an example of use, go to [examples/basic.rs](https://github.com/mattyhall/stompers/blob/master/examples/basic.rs).
 
+## Make
+To run the example, which will also make the library, run
+
+``make examples``
+
 ## Things working
 * [ ] Connection
     * [x] Getting a connection
@@ -25,3 +30,4 @@ For an example of use, go to [examples/basic.rs](https://github.com/mattyhall/st
 * [ ] Nice cleanup
     * [ ] Unsubscribe from queues
     * [ ] Send disconnect frame
+* [ ] Documentation
