@@ -3,7 +3,7 @@ use collections::HashMap;
 use misc::*;
 
 
-#[deriving(Show, Eq)]
+#[deriving(Show, Eq, Clone)]
 pub enum Command {
     // Client commands
     Connect,
@@ -41,7 +41,7 @@ impl Command {
     }
 }
 
-#[deriving(Show, Eq)]
+#[deriving(Show, Eq, Clone)]
 pub struct Frame {
     pub command: Command,
     pub headers: HashMap<String,String>,

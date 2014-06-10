@@ -2,6 +2,7 @@
 #![crate_type = "lib"]
 #![feature(globs)]
 
+extern crate sync;
 extern crate collections;
 
 pub use misc::*;
