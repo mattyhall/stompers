@@ -54,7 +54,9 @@ impl Frame {
     }
 
     pub fn add_header(&mut self, k: &str, v: &str) {
-        self.headers.insert(String::from_str(k), String::from_str(v));
+        let k = sanitise_header_text(String::from_str(k));
+        let v = sanitise_header_text(String::from_str(v));
+        self.headers.insert(k, v);
     }
 
     pub fn to_string(&self) -> String {
@@ -84,7 +86,7 @@ impl Frame {
                 break;
             }
             let (k, v) = try!(parse_header(line));
-            frame.add_header(k, v);
+            frame.headers.insert(k, v);
         }
 
         let mut body = String::new();
@@ -101,10 +103,24 @@ impl Frame {
     }
 }
 
-fn parse_header<'a>(line: &'a str) -> Result<(&'a str, &'a str), StompError> {
+fn parse_header<'a>(line: &'a str) -> Result<(String, String), StompError> {
     let parts: Vec<&str> = line.split_str(":").collect();
     if parts.len() != 2 {
         return Err(MalformedHeader(format!("Header does not have a key and a value. {}", line)));
     }
-    Ok((*parts.get(0), *parts.get(1)))
+    let k = parse_header_text(*parts.get(0));
+    let v = parse_header_text(*parts.get(1));
+    Ok((k, v))
+}
+
+fn sanitise_header_text(s: String) -> String {
+    // replace backslash first, otherwise it will escape backslashes that we escaped
+    s.replace("\\", "\\\\").replace("\r", "\\r")
+     .replace("\n", "\\n").replace(":", "\\c")
+}
+
+fn parse_header_text(s: &str) -> String {
+    let s = String::from_str(s);
+    s.replace("\\c", ":").replace("\\\\", "\\").replace("\\r", "\r")
+     .replace("\\n", "\n")
 }
