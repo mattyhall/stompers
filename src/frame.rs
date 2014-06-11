@@ -64,7 +64,7 @@ impl Frame {
             let h = format!("{}:{}\n", k, v);
             s.push_str(h.as_slice());
         }
-        format!("{}\n{}\n\n{}\0", command, s.to_str(), self.body)
+        format!("{}\n{}\n{}\0", command, s.to_str(), self.body)
     }
 
     pub fn parse(bytes: &[u8]) -> Result<Frame, StompError> {
@@ -76,16 +76,26 @@ impl Frame {
         let cmd_str = *lines.get(0);
         let cmd = try!(Command::parse(cmd_str));
         let mut frame = Frame::new(cmd, "");
+        let mut iter = lines.iter().skip(1);
         
-        for &line in lines.iter().skip(1) {
+        for &line in iter {
+            // a blank line means the body is next
             if line == "" {
                 break;
             }
             let (k, v) = try!(parse_header(line));
             frame.add_header(k, v);
         }
-        let &body = lines.iter().last().unwrap();
-        frame.body = String::from_str(body);
+
+        let mut body = String::new();
+        // Getting a value from an iterator removes it from the iterator.
+        // Therefore all values left are part of the body
+        for &body_line in iter {
+            body.push_str(body_line);
+            body.push_str("\n");
+        }
+        body.pop_char();
+        frame.body = body;
 
         return Ok(frame);
     }
