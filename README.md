@@ -6,6 +6,9 @@ So far it has only been tested with RabbitMQ, but it should work with other serv
 
 For an example of use, go to [examples/basic.rs](https://github.com/mattyhall/stompers/blob/master/examples/basic.rs).
 
+## TODO
+A list of things to do are available as a [Trello board](https://trello.com/b/bHOrED1w/stompers)
+
 ## Make
 To run the example, which will also make the library, run
 
