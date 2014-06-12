@@ -20,6 +20,11 @@ impl Message {
         self.frame.add_header(k, v);
     }
 
+    pub fn get_header<'a>(&'a self, k: &str) -> Option<&'a String> {
+        let k = String::from_str(k);
+        self.frame.headers.find(&k)
+    }
+
     pub fn to_string(&self) -> String {
         self.frame.to_string()
     }

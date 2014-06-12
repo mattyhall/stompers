@@ -4,6 +4,7 @@ use std::io::timer::sleep;
 
 fn listener(msg: stompers::Message) {
     println!("Listener got message: {}", msg);
+    println!("The value for 'nasty\n:' is {}", msg.get_header("nasty\n:").unwrap());
 }
 
 fn main() {
