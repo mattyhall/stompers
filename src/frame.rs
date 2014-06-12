@@ -54,16 +54,14 @@ impl Frame {
     }
 
     pub fn add_header(&mut self, k: &str, v: &str) {
-        let k = sanitise_header_text(String::from_str(k));
-        let v = sanitise_header_text(String::from_str(v));
-        self.headers.insert(k, v);
+        self.headers.insert(String::from_str(k), String::from_str(v));
     }
 
     pub fn to_string(&self) -> String {
         let command = self.command.to_str();
         let mut s = String::new();
         for (k, v) in self.headers.iter() {
-            let h = format!("{}:{}\n", k, v);
+            let h = format!("{}:{}\n", sanitise_header_text(k), sanitise_header_text(v));
             s.push_str(h.as_slice());
         }
         format!("{}\n{}\n{}\0", command, s.to_str(), self.body)
@@ -113,7 +111,7 @@ fn parse_header<'a>(line: &'a str) -> Result<(String, String), StompError> {
     Ok((k, v))
 }
 
-fn sanitise_header_text(s: String) -> String {
+fn sanitise_header_text(s: &String) -> String {
     // replace backslash first, otherwise it will escape backslashes that we escaped
     s.replace("\\", "\\\\").replace("\r", "\\r")
      .replace("\n", "\\n").replace(":", "\\c")
