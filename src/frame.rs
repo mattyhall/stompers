@@ -50,7 +50,11 @@ pub struct Frame {
 
 impl Frame {
     pub fn new(cmd: Command, bdy: &str) -> Frame {
-        Frame {command: cmd, body: String::from_str(bdy), headers: HashMap::new()}
+        let body = String::from_str(bdy);
+        let len = body.len();
+        let mut frame = Frame {command: cmd, body: body, headers: HashMap::new()};
+        frame.add_header("content-length", len.to_str().as_slice());
+        frame
     }
 
     pub fn add_header(&mut self, k: &str, v: &str) {
