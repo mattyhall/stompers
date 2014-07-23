@@ -1,7 +1,7 @@
 use std::io::IoResult;
 use std::io::net::tcp::TcpStream;
 use sync::{Arc, Mutex};
-use collections::HashMap;
+use std::collections::HashMap;
 use misc::*;
 use frame;
 use message;
@@ -115,7 +115,7 @@ impl Connection {
         }
 
         let mut subscribe_frame = frame::Frame::new(frame::Subscribe, "");
-        subscribe_frame.add_header("id", self.subscription_num.to_str().as_slice());
+        subscribe_frame.add_header("id", self.subscription_num.to_string().as_slice());
         subscribe_frame.add_header("destination", queue);
         self.send_frame(&subscribe_frame);
 

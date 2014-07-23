@@ -1,6 +1,6 @@
 use std::io;
 
-#[deriving(Show, Eq)]
+#[deriving(Show)]
 pub enum StompError {
     TcpError(io::IoError),
     MalformedFrame(String),

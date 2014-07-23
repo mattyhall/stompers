@@ -1,6 +1,6 @@
 use frame;
 
-#[deriving(Show, Eq)]
+#[deriving(Show, PartialEq, Eq)]
 pub struct Message {
     frame: frame::Frame,
 }

@@ -1,9 +1,9 @@
 use std::str;
-use collections::HashMap;
+use std::collections::HashMap;
 use misc::*;
 
 
-#[deriving(Show, Eq, Clone)]
+#[deriving(Show, PartialEq, Eq, Clone)]
 pub enum Command {
     // Client commands
     Connect,
@@ -41,7 +41,7 @@ impl Command {
     }
 }
 
-#[deriving(Show, Eq, Clone)]
+#[deriving(Show, PartialEq, Eq, Clone)]
 pub struct Frame {
     pub command: Command,
     pub headers: HashMap<String,String>,
@@ -53,7 +53,7 @@ impl Frame {
         let body = String::from_str(bdy);
         let len = body.len();
         let mut frame = Frame {command: cmd, body: body, headers: HashMap::new()};
-        frame.add_header("content-length", len.to_str().as_slice());
+        frame.add_header("content-length", len.to_string().as_slice());
         frame
     }
 
@@ -68,7 +68,7 @@ impl Frame {
             let h = format!("{}:{}\n", sanitise_header_text(k), sanitise_header_text(v));
             s.push_str(h.as_slice());
         }
-        format!("{}\n{}\n{}\0", command, s.to_str(), self.body)
+        format!("{}\n{}\n{}\0", command, s, self.body)
     }
 
     pub fn parse(bytes: &[u8]) -> Result<Frame, StompError> {
@@ -77,7 +77,7 @@ impl Frame {
         if lines.len() <= 1 {
             return Err(MalformedFrame(format!("Frame too short. Must have at least 2 lines. Frame was: {}", s)));
         }
-        let cmd_str = *lines.get(0);
+        let cmd_str = lines[0];
         let cmd = try!(Command::parse(cmd_str));
         let mut frame = Frame::new(cmd, "");
         let mut iter = lines.iter().skip(1);
@@ -110,8 +110,8 @@ fn parse_header<'a>(line: &'a str) -> Result<(String, String), StompError> {
     if parts.len() != 2 {
         return Err(MalformedHeader(format!("Header does not have a key and a value. {}", line)));
     }
-    let k = parse_header_text(*parts.get(0));
-    let v = parse_header_text(*parts.get(1));
+    let k = parse_header_text(parts[0]);
+    let v = parse_header_text(parts[1]);
     Ok((k, v))
 }
 

@@ -1,0 +1,13 @@
+[package]
+
+name = "stompers"
+version = "0.1.0"
+authors = ["matthew@quickbeam.me.uk"]
+
+[[lib]]
+name = "stompers"
+path = "src/lib.rs"
+
+[[bin]]
+name = "basic"
+path = "examples/basic/main.rs"

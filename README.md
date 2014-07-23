@@ -4,15 +4,19 @@ Stompers is a STOMP client for rust. It is currently in its early stages and pro
 
 So far it has only been tested with RabbitMQ, but it should work with other servers. I think. Maybe.
 
-For an example of use, go to [examples/basic.rs](https://github.com/mattyhall/stompers/blob/master/examples/basic.rs).
+For an example of use, go to [examples/basic/main.rs](https://github.com/mattyhall/stompers/blob/master/examples/basic/main.rs).
 
 ## TODO
 A list of things to do are available as a [Trello board](https://trello.com/b/bHOrED1w/stompers)
 
 ## Make
-To run the example, which will also make the library, run
+To build the library and the example. Run
 
-``make examples``
+    $ cargo build
+
+You can then run the example by doing
+
+    $ ./target/basic
 
 ## Things working
 * [ ] Connection
